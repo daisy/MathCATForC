@@ -363,21 +363,39 @@ pub extern "C" fn FreeMathCATStringArray(array: CStringArray) {
 /// Return the braille codes that are supported in this version of MathCAT.
 /// If there is an error, the id is set to an empty string (use GetError()).
 pub extern "C" fn GetSupportedBrailleCodes() -> CStringArray {
-    return vec_to_cstring_array(libmathcat::get_supported_braille_codes());
+    match libmathcat::get_supported_braille_codes() {
+        Ok(codes) => vec_to_cstring_array(codes),
+        Err(e) => {
+            change_error_string_value(errors_to_string(&e));
+            CStringArray { data: std::ptr::null_mut(), len: 0 }
+        }
+    }
 }
 
 #[no_mangle]
 /// Return the braille codes that are supported in this version of MathCAT.
 /// If there is an error, the id is set to an empty string (use GetError()).
 pub extern "C" fn GetSupportedLanguages() -> CStringArray {
-    return vec_to_cstring_array(libmathcat::get_supported_languages());
+    match libmathcat::get_supported_languages() {
+        Ok(languages) => vec_to_cstring_array(languages),
+        Err(e) => {
+            change_error_string_value(errors_to_string(&e));
+            CStringArray { data: std::ptr::null_mut(), len: 0 }
+        }
+    }
 }
 
 #[no_mangle]
 /// Return the braille codes that are supported in this version of MathCAT.
 /// If there is an error, the id is set to an empty string (use GetError()).
 pub extern "C" fn GetSupportedSpeechStyles(language: *const c_char) -> CStringArray {
-    return vec_to_cstring_array(libmathcat::get_supported_speech_styles(safe_string(language)));
+    match libmathcat::get_supported_speech_styles(safe_string(language)) {
+        Ok(styles) => vec_to_cstring_array(styles),
+        Err(e) => {
+            change_error_string_value(errors_to_string(&e));
+            CStringArray { data: std::ptr::null_mut(), len: 0 }
+        }
+    }
 }
 
 fn vec_to_cstring_array(vec: Vec<String>) -> CStringArray {
