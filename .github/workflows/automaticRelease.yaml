@@ -44,10 +44,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Build 32 bit version
+      - name: Build 32 bit version (default)
         run:  cargo build --target i686-pc-windows-msvc --release
       # HOW DO I GET A 32 BIT GCC TO RUN? 
-      - name: Setup Example dir and test build
+      - name: Setup Example dir
         run: |
           cp target/i686-pc-windows-msvc/release/libmathcat_c.dll Example/
           cd Example
@@ -55,18 +55,32 @@ jobs:
       #     ./test.exe
       #     gcc test.c -o test -L. -llibmathcat_c
       #     ./test.exe
-      - name: create zip file for dll file -- this allows the name to indicate arch, python version, etc., but unzipped it is correctly named
+      - name: create zip file for default dll
         uses: thedoctor0/zip-release@0.7.5
         with:
           type: 'zip'
           filename: '../libmathcat_c.dll-32-win.zip'
           directory: 'Example'
           path: 'libmathcat_c.dll'
-      - name: Upload 32 bit pyd file 
+      - name: Build 32 bit version (no-unsafe)
+        run:  cargo build --target i686-pc-windows-msvc --release --features no-unsafe
+      - name: Setup Example dir for no-unsafe
+        run: |
+          cp target/i686-pc-windows-msvc/release/libmathcat_c.dll Example/
+      - name: create zip file for no-unsafe dll
+        uses: thedoctor0/zip-release@0.7.5
+        with:
+          type: 'zip'
+          filename: '../libmathcat_c.dll-no-unsafe-32-win.zip'
+          directory: 'Example'
+          path: 'libmathcat_c.dll'
+      - name: Upload 32 bit dll files 
         uses: actions/upload-artifact@v4
         with:
-          name: libmathcat_c.dll-32-win.zip
-          path: libmathcat_c.dll-32-win.zip
+          name: libmathcat_c.dll-32-win
+          path: |
+            libmathcat_c.dll-32-win.zip
+            libmathcat_c.dll-no-unsafe-32-win.zip
           compression-level: 0
           retention-days: 1
 
@@ -77,7 +91,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Build 64 bit version
+      - name: Build 64 bit version (default)
         run:  cargo build --target x86_64-pc-windows-msvc --release
       #
       - name: Download Rules.zip
@@ -88,7 +102,7 @@ jobs:
         run: |
           unzip Rules.zip -d Example
           ls -l Example/Rules
-      - name: Setup Example dir and test build
+      - name: Setup Example dir and test build (default)
         run: |
           cp target/x86_64-pc-windows-msvc/release/libmathcat_c.dll Example/
           cd Example
@@ -96,18 +110,37 @@ jobs:
           ./test.exe
           gcc test.c -o test -L. -llibmathcat_c
           ./test.exe
-      - name: create zip file for dll file -- this allows the name to indicate arch, python version, etc., but unzipped it is correctly named
+      - name: create zip file for default dll
         uses: thedoctor0/zip-release@0.7.5
         with:
           type: 'zip'
           filename: '../libmathcat_c.dll-64-win.zip'
           directory: 'Example'
           path: 'libmathcat_c.dll'
-      - name: Upload 64 bit pyd file 
+      - name: Build 64 bit version (no-unsafe)
+        run:  cargo build --target x86_64-pc-windows-msvc --release --features no-unsafe
+      - name: Setup Example dir and test build (no-unsafe)
+        run: |
+          cp target/x86_64-pc-windows-msvc/release/libmathcat_c.dll Example/
+          cd Example
+          gcc test.cpp -o test -L. -llibmathcat_c
+          ./test.exe
+          gcc test.c -o test -L. -llibmathcat_c
+          ./test.exe
+      - name: create zip file for no-unsafe dll
+        uses: thedoctor0/zip-release@0.7.5
+        with:
+          type: 'zip'
+          filename: '../libmathcat_c.dll-no-unsafe-64-win.zip'
+          directory: 'Example'
+          path: 'libmathcat_c.dll'
+      - name: Upload 64 bit dll files 
         uses: actions/upload-artifact@v4
         with:
-          name: libmathcat_c.dll-64-win.zip
-          path: libmathcat_c.dll-64-win.zip
+          name: libmathcat_c.dll-64-win
+          path: |
+            libmathcat_c.dll-64-win.zip
+            libmathcat_c.dll-no-unsafe-64-win.zip
           compression-level: 0
           retention-days: 1
 
@@ -117,12 +150,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Build 64 bit version
-        run: |
-          rustup target add aarch64-pc-windows-msvc
-          cargo build --target aarch64-pc-windows-msvc --release
+      - name: Add ARM Windows target
+        run: rustup target add aarch64-pc-windows-msvc
+      - name: Build 64 bit arm version (default)
+        run: cargo build --target aarch64-pc-windows-msvc --release
       # HOW DO I GET A ARM GCC TO RUN? 
-      - name: Setup Example dir and test build
+      - name: Setup Example dir for default
         run: |
           cp target/aarch64-pc-windows-msvc/release/libmathcat_c.dll Example/
           cd Example
@@ -130,18 +163,32 @@ jobs:
           # ./test.exe
           # gcc test.c -o test -L. -llibmathcat_c
           # ./test.exe
-      - name: create zip file for dll file -- this allows the name to indicate arch, python version, etc., but unzipped it is correctly named
+      - name: create zip file for default dll
         uses: thedoctor0/zip-release@0.7.5
         with:
           type: 'zip'
           filename: '../libmathcat_c.dll-64-arm.zip'
           directory: 'Example'
           path: 'libmathcat_c.dll'
-      - name: Upload 64 bit pyd file 
+      - name: Build 64 bit arm version (no-unsafe)
+        run: cargo build --target aarch64-pc-windows-msvc --release --features no-unsafe
+      - name: Setup Example dir for no-unsafe
+        run: |
+          cp target/aarch64-pc-windows-msvc/release/libmathcat_c.dll Example/
+      - name: create zip file for no-unsafe dll
+        uses: thedoctor0/zip-release@0.7.5
+        with:
+          type: 'zip'
+          filename: '../libmathcat_c.dll-no-unsafe-64-arm.zip'
+          directory: 'Example'
+          path: 'libmathcat_c.dll'
+      - name: Upload 64 bit arm dll files 
         uses: actions/upload-artifact@v4
         with:
-          name: libmathcat_c.dll-64-armn.zip
-          path: libmathcat_c.dll-64-arm.zip
+          name: libmathcat_c.dll-64-arm
+          path: |
+            libmathcat_c.dll-64-arm.zip
+            libmathcat_c.dll-no-unsafe-64-arm.zip
           compression-level: 0
           retention-days: 1
 
@@ -159,18 +206,18 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: rules-headers-tests
-    - name: Download 32 bit build
+    - name: Download 32 bit builds
       uses: actions/download-artifact@v4
       with:
-        name: libmathcat_c.dll-32-win.zip
-    - name: Download 64 bit build
+        name: libmathcat_c.dll-32-win
+    - name: Download 64 bit builds
       uses: actions/download-artifact@v4
       with:
-        name: libmathcat_c.dll-64-win.zip
-    - name: Download 64 bit linux build
+        name: libmathcat_c.dll-64-win
+    - name: Download 64 bit arm builds
       uses: actions/download-artifact@v4
       with:
-        name: libmathcat_c.dll-64-armn.zip
+        name: libmathcat_c.dll-64-arm
     - name: Automatic release
       uses: marvinpinto/action-automatic-releases@latest
       with:
