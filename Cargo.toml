@@ -1,6 +1,6 @@
 [package]
 name = "mathcat_c"
-version = "0.7.6-beta.9"
+version = "0.7.6-beta.9"  # on gitbug, this will be replaced by the current MathCAT version
 authors = ["Neil Soiffer <soiffer@alum.mit.edu>"]
 edition = "2024"
 license = "MIT"
