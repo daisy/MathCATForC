@@ -282,13 +282,24 @@ jobs:
       uses: actions/download-artifact@v5
       with:
         name: libmathcat_c.dll-64-arm
+    - name: Get MathCAT version for release title
+      id: mathcat-version
+      shell: bash
+      run: |
+        VERSION=$(curl -fsSL https://raw.githubusercontent.com/NSoiffer/MathCAT/latest/Cargo.toml \
+          | sed -n 's/^version = "\(.*\)"/\1/p' | head -n1)
+        if [ -z "$VERSION" ]; then
+          echo "Failed to read MathCAT version from latest tag" >&2
+          exit 1
+        fi
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
     - name: Automatic release
       uses: marvinpinto/action-automatic-releases@latest
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         automatic_release_tag: latest
         prerelease: true
-        title: Development Build
+        title: Development Build (using version ${{ steps.mathcat-version.outputs.version }})
         files: |
           libmathcat*.zip
           Rules.zip
