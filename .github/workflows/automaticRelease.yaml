@@ -15,6 +15,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Use MathCAT from GitHub latest tag
+        shell: bash
+        run: |
+          sed -i.bak \
+            -e 's|mathcat = {path= "../MathCAT/"}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest" }|' \
+            -e 's|mathcat = {path = "../MathCAT/" , features = \["include-zip"\]}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }|' \
+            Cargo.toml
+          rm -f Cargo.toml.bak
       - name: Build Rust Library 
         run: |
           # doesn't need a release build since all that we want is the Rules dir and the .h files
@@ -44,6 +52,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Use MathCAT from GitHub latest tag
+        shell: bash
+        run: |
+          sed -i.bak \
+            -e 's|mathcat = {path= "../MathCAT/"}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest" }|' \
+            -e 's|mathcat = {path = "../MathCAT/" , features = \["include-zip"\]}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }|' \
+            Cargo.toml
+          rm -f Cargo.toml.bak
       - name: Build 32 bit version (default)
         run:  cargo build --target i686-pc-windows-msvc --release
       # HOW DO I GET A 32 BIT GCC TO RUN? 
@@ -91,6 +107,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Use MathCAT from GitHub latest tag
+        shell: bash
+        run: |
+          sed -i.bak \
+            -e 's|mathcat = {path= "../MathCAT/"}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest" }|' \
+            -e 's|mathcat = {path = "../MathCAT/" , features = \["include-zip"\]}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }|' \
+            Cargo.toml
+          rm -f Cargo.toml.bak
       - name: Build 64 bit version (default)
         run:  cargo build --target x86_64-pc-windows-msvc --release
       #
@@ -150,6 +174,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Use MathCAT from GitHub latest tag
+        shell: bash
+        run: |
+          sed -i.bak \
+            -e 's|mathcat = {path= "../MathCAT/"}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest" }|' \
+            -e 's|mathcat = {path = "../MathCAT/" , features = \["include-zip"\]}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }|' \
+            Cargo.toml
+          rm -f Cargo.toml.bak
       - name: Add ARM Windows target
         run: rustup target add aarch64-pc-windows-msvc
       - name: Build 64 bit arm version (default)

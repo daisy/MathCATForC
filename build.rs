@@ -43,7 +43,7 @@ BEGIN
 	END
 END");
 		fs::write("version.rc", data).expect("Unable to write file");
-		embed_resource::compile("version.rc", embed_resource::NONE);
+		embed_resource::compile("version.rc", embed_resource::NONE).manifest_optional().unwrap();
 	
 	}
 }

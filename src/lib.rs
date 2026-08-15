@@ -59,7 +59,7 @@ fn change_error_string_value(new_string: String) {
     })
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Returns the error set by the last call.
 /// Calling GetError() will clear the current error.
 /// If there is no error, "" (an empty string) will be returned.
@@ -114,7 +114,7 @@ fn set_empty_error(result: Result<(), libmathcat::errors::Error>) -> *const c_ch
     return result.into_raw();
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// IMPORTANT: For every MathCAT function that returns a string, it must be free'd with this call
 /// If this is not called, the memory will be leaked.
 pub extern "C" fn FreeMathCATString(str: *mut c_char) {
@@ -125,7 +125,7 @@ pub extern "C" fn FreeMathCATString(str: *mut c_char) {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// The absolute path location of the MathCAT Rules dir.
 /// Returns "Ok" or an empty string if there is an error (use GetError()).
 /// IMPORTANT: This should be the first call to MathCAT
@@ -135,7 +135,7 @@ pub extern "C" fn SetRulesDir(rules_dir_location: *const c_char) -> *const c_cha
     );
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// The MathML to be spoken, brailled, or navigated.
 ///
 /// This will override any previous MathML that was set.
@@ -147,21 +147,21 @@ pub extern "C" fn SetMathML(mathml_str: *const c_char) -> *const c_char {
     );
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Get the spoken text of the MathML that was set.
 /// The speech takes into account any AT or user preferences.
 pub extern "C" fn GetMathCATVersion() -> *const c_char {    
     return set_string_error( Ok(get_version()) );
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Get the spoken text of the MathML that was set.
 /// The speech takes into account any AT or user preferences.
 pub extern "C" fn GetSpokenText() -> *const c_char {
     return set_string_error( get_spoken_text() );
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Set an API preference. The preference name should be a known preference name.
 /// The value should either be a string or a number (depending upon the preference being set)
 ///
@@ -173,7 +173,7 @@ pub extern "C" fn SetPreference(name: *const c_char, value: *const c_char) -> *c
     return set_empty_error( set_preference(name, value) );
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Set an API preference. The preference name should be a known preference name.
 /// The value should either be a string or a number (depending upon the preference being set)
 ///
@@ -191,7 +191,7 @@ pub extern "C" fn GetPreference(name: *const c_char) -> *const c_char {
     };
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Get the braille associated with the MathML that was set by [`set_mathml`].
 /// The braille returned depends upon the preference for the `code` preference (default `Nemeth`).
 /// 
@@ -200,7 +200,7 @@ pub extern "C" fn GetBraille(nav_node_id: *const c_char) -> *const c_char {
     return set_string_error( get_braille(safe_string(nav_node_id)) );
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Get the braille associated with the current navigation focus of the MathML that was set by [`set_mathml`].
 /// The braille returned depends upon the preference for the `code` preference (default `Nemeth`).
 /// 
@@ -209,7 +209,7 @@ pub extern "C" fn GetNavigationBraille() -> *const c_char {
     return set_string_error( get_navigation_braille() );
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Given a key code along with the modifier keys, the current node is moved accordingly (or value reported in some cases).
 ///
 /// The spoken text for the new current node is returned.
@@ -217,7 +217,7 @@ pub extern "C" fn DoNavigateKeyPress(key: usize, shift_key: bool, control_key: b
     return set_string_error( do_navigate_keypress(key, shift_key, control_key, alt_key, meta_key) );
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Given a command, the current node is moved accordingly (or value reported in some cases).
 ///
 /// The spoken text for the new current node is returned.
@@ -240,7 +240,7 @@ pub extern "C" fn DoNavigateCommand(command: *const c_char) -> *const c_char {
     return set_string_error( do_navigate_command(safe_string(command)) );
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Return the MathML associated with the current (navigation) node.
 pub extern "C" fn GetNavigationMathML() -> *const c_char {
     return match get_navigation_mathml() {
@@ -250,7 +250,7 @@ pub extern "C" fn GetNavigationMathML() -> *const c_char {
 }
 
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Return the id of the MathML associated with the current (navigation) node.
 /// Note: this is deprecated -- use GetNavigationLocation()
 pub extern "C" fn GetNavigationMathMLId() -> *const c_char {
@@ -268,7 +268,7 @@ pub extern "C" fn GetNavigationMathMLIdOffset() -> u32 {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Return the offset from the MathML node associated with the current (navigation) node.
 /// Note: this is deprecated -- use GetNavigationLocation()
 pub extern "C" fn GetNavigationMathMLOffset() -> u32 {
@@ -291,7 +291,7 @@ pub struct NavigationLocation {
     offset: u32,
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Set the location of the navigation node associated with the current MathML expression.
 /// Returns "Ok" or an empty string if there is an error (use GetError()).
 pub extern "C" fn SetNavigationLocation(location: NavigationLocation) -> *const c_char {
@@ -300,7 +300,7 @@ pub extern "C" fn SetNavigationLocation(location: NavigationLocation) -> *const 
     )
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Return the NavigationLocation (id and offset) associated with the current (navigation) node.
 /// If there is an error, the id is set to an empty string (use GetError()).
 pub extern "C" fn GetNavigationLocation() -> NavigationLocation {
@@ -321,7 +321,7 @@ pub extern "C" fn GetNavigationLocation() -> NavigationLocation {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Return the NavigationLocation (id and offset) associated with braille cursor location (0-based).
 /// If there is an error, the id is set to an empty string (use GetError()).
 pub extern "C" fn GetNavigationLocationFromBraillePosition(position: u32) -> NavigationLocation {
@@ -348,7 +348,7 @@ pub struct CStringArray {
     pub len: usize,
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Call this when you are done with the CStringArray returned by a function.
 pub extern "C" fn FreeMathCATStringArray(array: CStringArray) {
     unsafe {
@@ -359,7 +359,7 @@ pub extern "C" fn FreeMathCATStringArray(array: CStringArray) {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Return the braille codes that are supported in this version of MathCAT.
 /// If there is an error, the id is set to an empty string (use GetError()).
 pub extern "C" fn GetSupportedBrailleCodes() -> CStringArray {
@@ -372,7 +372,7 @@ pub extern "C" fn GetSupportedBrailleCodes() -> CStringArray {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Return the braille codes that are supported in this version of MathCAT.
 /// If there is an error, the id is set to an empty string (use GetError()).
 pub extern "C" fn GetSupportedLanguages() -> CStringArray {
@@ -385,7 +385,7 @@ pub extern "C" fn GetSupportedLanguages() -> CStringArray {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 /// Return the braille codes that are supported in this version of MathCAT.
 /// If there is an error, the id is set to an empty string (use GetError()).
 pub extern "C" fn GetSupportedSpeechStyles(language: *const c_char) -> CStringArray {
