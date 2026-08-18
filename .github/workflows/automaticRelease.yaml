@@ -42,6 +42,13 @@ jobs:
           filename: 'Rules.zip'
           directory: 'Example'
           path: 'Rules'
+      - name: create rules-minimized.zip
+        uses: thedoctor0/zip-release@0.7.5
+        with:
+          type: 'zip'
+          filename: 'Rules-minimized.zip'
+          directory: 'Example'
+          path: 'Rules'
       - name: Remove Rules dir in prep for uploading test, .h files, and Rules.zip
         run: |
           rm -r Example/Rules
@@ -303,5 +310,6 @@ jobs:
         files: |
           libmathcat*.zip
           Rules.zip
+          Rules-minimized.zip
           *.h
           test.*
