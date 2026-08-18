@@ -244,7 +244,7 @@ jobs:
           call "%VSPATH%\VC\Auxiliary\Build\vcvarsall.bat" arm64
           cl /nologo /EHsc test.cpp /Fe:test.exe /link libmathcat_c.dll.lib
           test.exe
-          cl /nologo /EHsc /TP test.c /Fe:test.exe /link libmathcat_c.dll.lib
+          cl /nologo /std:c17 test.c /Fe:test.exe /link libmathcat_c.dll.lib
           test.exe
       - name: Unpack Rules-minimized.zip
         shell: bash
@@ -269,7 +269,7 @@ jobs:
           call "%VSPATH%\VC\Auxiliary\Build\vcvarsall.bat" arm64
           cl /nologo /EHsc test.cpp /Fe:test.exe /link libmathcat_c.dll.lib
           test.exe
-          cl /nologo /EHsc /TP test.c /Fe:test.exe /link libmathcat_c.dll.lib
+          cl /nologo /std:c17 test.c /Fe:test.exe /link libmathcat_c.dll.lib
           test.exe
 
   rust-64-arm-win:
