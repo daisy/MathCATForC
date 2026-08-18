@@ -199,6 +199,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: rules-headers-tests
+          path: Example
       - name: Download dll
         uses: actions/download-artifact@v8
         with:
@@ -209,7 +210,7 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
-          install: mingw-w64-i686-gcc mingw-w64-i686-gcc-c++
+          install: mingw-w64-i686-gcc
           update: false
       - name: Put 32-bit gcc on PATH
         if: matrix.dll.bits == 32
@@ -222,7 +223,7 @@ jobs:
         shell: bash
         run: |
           rm -rf Example/Rules
-          unzip -o -q Rules.zip -d Example
+          unzip -o -q Example/Rules.zip -d Example
           cd Example
           gcc test.cpp -o test -L. -llibmathcat_c
           ./test.exe
@@ -232,7 +233,7 @@ jobs:
         shell: bash
         run: |
           rm -rf Example/Rules
-          unzip -o -q Rules-minimized.zip -d Example
+          unzip -o -q Example/Rules-minimized.zip -d Example
           cd Example
           gcc test.cpp -o test -L. -llibmathcat_c
           ./test.exe
