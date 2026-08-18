@@ -3,7 +3,7 @@ name: automatic-release
 on:
   push:
     branches:
-      - main
+      - '**'
   # schedule:
   #   # * is a special character in YAML so you have to quote this string
   #   - cron:  '0 0 * * 6'
@@ -15,31 +15,31 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-      - name: Use MathCAT from GitHub latest tag
+      - name: Use matching MathCAT branch from GitHub
         shell: bash
         run: |
-          VERSION=$(curl -fsSL https://raw.githubusercontent.com/NSoiffer/MathCAT/latest/Cargo.toml \
+          VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${GITHUB_REF_NAME}/Cargo.toml" \
             | sed -n 's/^version = "\(.*\)"/\1/p' | head -n1)
           if [ -z "$VERSION" ]; then
-            echo "Failed to read MathCAT version from latest tag" >&2
+            echo "Failed to read MathCAT version from branch '${GITHUB_REF_NAME}'" >&2
             exit 1
           fi
-          echo "Syncing package version to MathCAT $VERSION"
+          echo "Using MathCAT branch ${GITHUB_REF_NAME} (version $VERSION)"
           sed -i.bak \
             -e "s/^version = \".*\"/version = \"$VERSION\"/" \
-            -e 's|mathcat = {path= "../MathCAT/"}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest" }|' \
-            -e 's|mathcat = {path = "../MathCAT/" , features = \["include-zip"\]}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }|' \
+            -e "s|mathcat = {path= \"../MathCAT/\"}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\" }|" \
+            -e "s|mathcat = {path = \"../MathCAT/\" , features = \[\"include-zip\"\]}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\", features = [\"include-zip\"] }|" \
             Cargo.toml
           rm -f Cargo.toml.bak
       - name: Build Rust Library
         run: |
           # doesn't need a release build since all that we want is the Rules dir and the .h files
           cargo build --target x86_64-unknown-linux-gnu --features include-zip
-      - name: Checkout MathCAT latest
+      - name: Checkout matching MathCAT branch
         uses: actions/checkout@v5
         with:
           repository: NSoiffer/MathCAT
-          ref: latest
+          ref: ${{ github.ref_name }}
           path: MathCAT
       - name: Create Rules.zip and Rules-minimized.zip
         run: |
@@ -72,20 +72,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-      - name: Use MathCAT from GitHub latest tag
+      - name: Use matching MathCAT branch from GitHub
         shell: bash
         run: |
-          VERSION=$(curl -fsSL https://raw.githubusercontent.com/NSoiffer/MathCAT/latest/Cargo.toml \
+          VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${GITHUB_REF_NAME}/Cargo.toml" \
             | sed -n 's/^version = "\(.*\)"/\1/p' | head -n1)
           if [ -z "$VERSION" ]; then
-            echo "Failed to read MathCAT version from latest tag" >&2
+            echo "Failed to read MathCAT version from branch '${GITHUB_REF_NAME}'" >&2
             exit 1
           fi
-          echo "Syncing package version to MathCAT $VERSION"
+          echo "Using MathCAT branch ${GITHUB_REF_NAME} (version $VERSION)"
           sed -i.bak \
             -e "s/^version = \".*\"/version = \"$VERSION\"/" \
-            -e 's|mathcat = {path= "../MathCAT/"}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest" }|' \
-            -e 's|mathcat = {path = "../MathCAT/" , features = \["include-zip"\]}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }|' \
+            -e "s|mathcat = {path= \"../MathCAT/\"}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\" }|" \
+            -e "s|mathcat = {path = \"../MathCAT/\" , features = \[\"include-zip\"\]}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\", features = [\"include-zip\"] }|" \
             Cargo.toml
           rm -f Cargo.toml.bak
       - name: Build 32 bit version
@@ -124,20 +124,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-      - name: Use MathCAT from GitHub latest tag
+      - name: Use matching MathCAT branch from GitHub
         shell: bash
         run: |
-          VERSION=$(curl -fsSL https://raw.githubusercontent.com/NSoiffer/MathCAT/latest/Cargo.toml \
+          VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${GITHUB_REF_NAME}/Cargo.toml" \
             | sed -n 's/^version = "\(.*\)"/\1/p' | head -n1)
           if [ -z "$VERSION" ]; then
-            echo "Failed to read MathCAT version from latest tag" >&2
+            echo "Failed to read MathCAT version from branch '${GITHUB_REF_NAME}'" >&2
             exit 1
           fi
-          echo "Syncing package version to MathCAT $VERSION"
+          echo "Using MathCAT branch ${GITHUB_REF_NAME} (version $VERSION)"
           sed -i.bak \
             -e "s/^version = \".*\"/version = \"$VERSION\"/" \
-            -e 's|mathcat = {path= "../MathCAT/"}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest" }|' \
-            -e 's|mathcat = {path = "../MathCAT/" , features = \["include-zip"\]}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }|' \
+            -e "s|mathcat = {path= \"../MathCAT/\"}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\" }|" \
+            -e "s|mathcat = {path = \"../MathCAT/\" , features = \[\"include-zip\"\]}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\", features = [\"include-zip\"] }|" \
             Cargo.toml
           rm -f Cargo.toml.bak
       - name: Build 64 bit version
@@ -288,20 +288,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-      - name: Use MathCAT from GitHub latest tag
+      - name: Use matching MathCAT branch from GitHub
         shell: bash
         run: |
-          VERSION=$(curl -fsSL https://raw.githubusercontent.com/NSoiffer/MathCAT/latest/Cargo.toml \
+          VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${GITHUB_REF_NAME}/Cargo.toml" \
             | sed -n 's/^version = "\(.*\)"/\1/p' | head -n1)
           if [ -z "$VERSION" ]; then
-            echo "Failed to read MathCAT version from latest tag" >&2
+            echo "Failed to read MathCAT version from branch '${GITHUB_REF_NAME}'" >&2
             exit 1
           fi
-          echo "Syncing package version to MathCAT $VERSION"
+          echo "Using MathCAT branch ${GITHUB_REF_NAME} (version $VERSION)"
           sed -i.bak \
             -e "s/^version = \".*\"/version = \"$VERSION\"/" \
-            -e 's|mathcat = {path= "../MathCAT/"}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest" }|' \
-            -e 's|mathcat = {path = "../MathCAT/" , features = \["include-zip"\]}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }|' \
+            -e "s|mathcat = {path= \"../MathCAT/\"}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\" }|" \
+            -e "s|mathcat = {path = \"../MathCAT/\" , features = \[\"include-zip\"\]}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\", features = [\"include-zip\"] }|" \
             Cargo.toml
           rm -f Cargo.toml.bak
       - name: Add ARM Windows target
@@ -347,16 +347,22 @@ jobs:
       id: mathcat-version
       shell: bash
       run: |
-        VERSION=$(curl -fsSL https://raw.githubusercontent.com/NSoiffer/MathCAT/latest/Cargo.toml \
+        VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${GITHUB_REF_NAME}/Cargo.toml" \
           | sed -n 's/^version = "\(.*\)"/\1/p' | head -n1)
         if [ -z "$VERSION" ]; then
-          echo "Failed to read MathCAT version from latest tag" >&2
+          echo "Failed to read MathCAT version from branch '${GITHUB_REF_NAME}'" >&2
           exit 1
         fi
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        if [ "$GITHUB_REF_NAME" = "main" ]; then
+          echo "tag=latest" >> "$GITHUB_OUTPUT"
+        else
+          echo "tag=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+        fi
     - name: Automatic release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        RELEASE_TAG: ${{ steps.mathcat-version.outputs.tag }}
       run: |
         shopt -s nullglob
         files=(libmathcat*.zip Rules.zip Rules-minimized.zip *.h test.*)
@@ -364,9 +370,10 @@ jobs:
           echo "No release files found" >&2
           exit 1
         fi
-        gh release delete latest --yes --cleanup-tag || true
-        gh release create latest \
+        gh release delete "$RELEASE_TAG" --yes --cleanup-tag || true
+        gh release create "$RELEASE_TAG" \
           --prerelease \
-          --title "Development Build (using version ${{ steps.mathcat-version.outputs.version }})" \
+          --latest=false \
+          --title "Development Build from ${GITHUB_REF_NAME} (using version ${{ steps.mathcat-version.outputs.version }})" \
           --target "${{ github.sha }}" \
           "${files[@]}"

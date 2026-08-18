@@ -13,7 +13,7 @@ resolver = "2"    # allows different build dependency features
 
 [dependencies]
 # mathcat = {version = "0.7.6-rc.1"}
-mathcat = {path= "../MathCAT/"}  # local default; CI rewrites to git tag "latest"
+mathcat = {path= "../MathCAT/"}  # local default; CI rewrites to the matching MathCAT branch
 # mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest" }
 
 [lib]
@@ -26,7 +26,7 @@ zip = { version = "8.5", default-features = false, features = ["bzip2"] }
 cbindgen = "0.29"
 # for testing MathCAT without having to publish a new version (change two occurrences)
 # mathcat = {version = "=0.7.6-rc.1", features = ["include-zip"]}
-mathcat = {path = "../MathCAT/" , features = ["include-zip"]}  # local default; CI rewrites to git tag "latest"
+mathcat = {path = "../MathCAT/" , features = ["include-zip"]}  # local default; CI rewrites to the matching MathCAT branch
 # mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
