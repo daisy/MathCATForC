@@ -9,7 +9,7 @@ on:
   #   - cron:  '0 0 * * 6'
 
 jobs:
-  rules-headers-tests:  
+  rules-headers-tests:
     name: zip up the rules directory
     runs-on: ubuntu-latest
     steps:
@@ -31,28 +31,24 @@ jobs:
             -e 's|mathcat = {path = "../MathCAT/" , features = \["include-zip"\]}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }|' \
             Cargo.toml
           rm -f Cargo.toml.bak
-      - name: Build Rust Library 
+      - name: Build Rust Library
         run: |
           # doesn't need a release build since all that we want is the Rules dir and the .h files
           cargo build --target x86_64-unknown-linux-gnu --features include-zip
-      - name: create rules.zip
-        uses: thedoctor0/zip-release@0.7.5
+      - name: Checkout MathCAT latest
+        uses: actions/checkout@v5
         with:
-          type: 'zip'
-          filename: 'Rules.zip'
-          directory: 'Example'
-          path: 'Rules'
-      - name: create rules-minimized.zip
-        uses: thedoctor0/zip-release@0.7.5
-        with:
-          type: 'zip'
-          filename: 'Rules-minimized.zip'
-          directory: 'Example'
-          path: 'Rules'
-      - name: Remove Rules dir in prep for uploading test, .h files, and Rules.zip
+          repository: NSoiffer/MathCAT
+          ref: latest
+          path: MathCAT
+      - name: Create Rules.zip and Rules-minimized.zip
+        run: |
+          cargo run --manifest-path MathCAT/Cargo.toml --release --bin package-rules -- MathCAT/Rules Example/Rules.zip
+          cargo run --manifest-path MathCAT/Cargo.toml --release --bin package-rules -- MathCAT/Rules Example/Rules-minimized.zip --minimize
+      - name: Remove Rules dir in prep for uploading test, .h files, and Rules zips
         run: |
           rm -r Example/Rules
-      - name: Upload Example Dir (.h files, test files)
+      - name: Upload Example Dir (.h files, test files, Rules zips)
         uses: actions/upload-artifact@v5
         with:
           name: rules-headers-tests
@@ -60,10 +56,19 @@ jobs:
           compression-level: 0
           retention-days: 1
 
-
-  rust-32-win:  
-    name: Build 32 bit windows dll
+  rust-32-win:
+    name: Build 32 bit windows dll (${{ matrix.name }})
     runs-on: windows-latest  # needs to run on windows because of bzip2
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: default
+            features: ""
+            zip: libmathcat_c.dll-32-win.zip
+          - name: no-unsafe
+            features: --features no-unsafe
+            zip: libmathcat_c.dll-no-unsafe-32-win.zip
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -83,50 +88,39 @@ jobs:
             -e 's|mathcat = {path = "../MathCAT/" , features = \["include-zip"\]}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }|' \
             Cargo.toml
           rm -f Cargo.toml.bak
-      - name: Build 32 bit version (default)
-        run:  cargo build --target i686-pc-windows-msvc --release
-      # HOW DO I GET A 32 BIT GCC TO RUN? 
+      - name: Build 32 bit version
+        run: cargo build --target i686-pc-windows-msvc --release ${{ matrix.features }}
       - name: Setup Example dir
         run: |
           cp target/i686-pc-windows-msvc/release/libmathcat_c.dll Example/
-          cd Example
-      #     gcc -m32 test.cpp -o test -L. -llibmathcat_c
-      #     ./test.exe
-      #     gcc test.c -o test -L. -llibmathcat_c
-      #     ./test.exe
-      - name: create zip file for default dll
+      - name: create zip file for dll
         uses: thedoctor0/zip-release@0.7.5
         with:
           type: 'zip'
-          filename: '../libmathcat_c.dll-32-win.zip'
+          filename: '../${{ matrix.zip }}'
           directory: 'Example'
           path: 'libmathcat_c.dll'
-      - name: Build 32 bit version (no-unsafe)
-        run:  cargo build --target i686-pc-windows-msvc --release --features no-unsafe
-      - name: Setup Example dir for no-unsafe
-        run: |
-          cp target/i686-pc-windows-msvc/release/libmathcat_c.dll Example/
-      - name: create zip file for no-unsafe dll
-        uses: thedoctor0/zip-release@0.7.5
-        with:
-          type: 'zip'
-          filename: '../libmathcat_c.dll-no-unsafe-32-win.zip'
-          directory: 'Example'
-          path: 'libmathcat_c.dll'
-      - name: Upload 32 bit dll files 
+      - name: Upload 32 bit dll file
         uses: actions/upload-artifact@v5
         with:
-          name: libmathcat_c.dll-32-win
-          path: |
-            libmathcat_c.dll-32-win.zip
-            libmathcat_c.dll-no-unsafe-32-win.zip
+          name: ${{ matrix.zip }}
+          path: ${{ matrix.zip }}
           compression-level: 0
           retention-days: 1
 
-  rust-64-win:  
-    name: Build 64 bit windows dll
-    needs: [rules-headers-tests]
+  rust-64-win:
+    name: Build 64 bit windows dll (${{ matrix.name }})
     runs-on: windows-latest  # needs to run on windows because of bzip2
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: default
+            features: ""
+            zip: libmathcat_c.dll-64-win.zip
+          - name: no-unsafe
+            features: --features no-unsafe
+            zip: libmathcat_c.dll-no-unsafe-64-win.zip
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -146,62 +140,118 @@ jobs:
             -e 's|mathcat = {path = "../MathCAT/" , features = \["include-zip"\]}|mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }|' \
             Cargo.toml
           rm -f Cargo.toml.bak
-      - name: Build 64 bit version (default)
-        run:  cargo build --target x86_64-pc-windows-msvc --release
-      #
-      - name: Download Rules.zip
-        uses: actions/download-artifact@v5
-        with:
-          name: rules-headers-tests
-      - name: Unzip Rules.zip
-        run: |
-          unzip Rules.zip -d Example
-          ls -l Example/Rules
-      - name: Setup Example dir and test build (default)
+      - name: Build 64 bit version
+        run: cargo build --target x86_64-pc-windows-msvc --release ${{ matrix.features }}
+      - name: Setup Example dir
         run: |
           cp target/x86_64-pc-windows-msvc/release/libmathcat_c.dll Example/
-          cd Example
-          gcc test.cpp -o test -L. -llibmathcat_c
-          ./test.exe
-          gcc test.c -o test -L. -llibmathcat_c
-          ./test.exe
-      - name: create zip file for default dll
+      - name: create zip file for dll
         uses: thedoctor0/zip-release@0.7.5
         with:
           type: 'zip'
-          filename: '../libmathcat_c.dll-64-win.zip'
+          filename: '../${{ matrix.zip }}'
           directory: 'Example'
           path: 'libmathcat_c.dll'
-      - name: Build 64 bit version (no-unsafe)
-        run:  cargo build --target x86_64-pc-windows-msvc --release --features no-unsafe
-      - name: Setup Example dir and test build (no-unsafe)
-        run: |
-          cp target/x86_64-pc-windows-msvc/release/libmathcat_c.dll Example/
-          cd Example
-          gcc test.cpp -o test -L. -llibmathcat_c
-          ./test.exe
-          gcc test.c -o test -L. -llibmathcat_c
-          ./test.exe
-      - name: create zip file for no-unsafe dll
-        uses: thedoctor0/zip-release@0.7.5
-        with:
-          type: 'zip'
-          filename: '../libmathcat_c.dll-no-unsafe-64-win.zip'
-          directory: 'Example'
-          path: 'libmathcat_c.dll'
-      - name: Upload 64 bit dll files 
+      - name: Upload 64 bit dll file
         uses: actions/upload-artifact@v5
         with:
-          name: libmathcat_c.dll-64-win
-          path: |
-            libmathcat_c.dll-64-win.zip
-            libmathcat_c.dll-no-unsafe-64-win.zip
+          name: ${{ matrix.zip }}
+          path: ${{ matrix.zip }}
           compression-level: 0
           retention-days: 1
 
-  rust-64-arm-win:  
-    name: Build 64 bit arm windows dll
+  rust-win-test:
+    name: Test ${{ matrix.dll.name }}
+    needs: [rust-32-win, rust-64-win, rust-64-arm-win, rules-headers-tests]
+    runs-on: ${{ matrix.dll.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        dll:
+          - name: 32-bit default
+            zip: libmathcat_c.dll-32-win.zip
+            os: windows-latest
+            bits: 32
+          - name: 32-bit no-unsafe
+            zip: libmathcat_c.dll-no-unsafe-32-win.zip
+            os: windows-latest
+            bits: 32
+          - name: 64-bit default
+            zip: libmathcat_c.dll-64-win.zip
+            os: windows-latest
+            bits: 64
+          - name: 64-bit no-unsafe
+            zip: libmathcat_c.dll-no-unsafe-64-win.zip
+            os: windows-latest
+            bits: 64
+          - name: ARM default
+            zip: libmathcat_c.dll-64-arm.zip
+            os: windows-11-arm
+            bits: 64
+          - name: ARM no-unsafe
+            zip: libmathcat_c.dll-no-unsafe-64-arm.zip
+            os: windows-11-arm
+            bits: 64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Download Rules zips, headers, and tests
+        uses: actions/download-artifact@v5
+        with:
+          name: rules-headers-tests
+      - name: Download dll
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ matrix.dll.zip }}
+      - name: Install 32-bit gcc
+        if: matrix.dll.bits == 32
+        id: msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          install: mingw-w64-i686-gcc mingw-w64-i686-gcc-c++
+          update: false
+      - name: Put 32-bit gcc on PATH
+        if: matrix.dll.bits == 32
+        shell: bash
+        run: echo "${{ steps.msys2.outputs.msys2-location }}/mingw32/bin" >> "$GITHUB_PATH"
+      - name: Unzip dll
+        shell: bash
+        run: unzip -o -q "${{ matrix.dll.zip }}" -d Example
+      - name: Test with Rules.zip
+        shell: bash
+        run: |
+          rm -rf Example/Rules
+          unzip -o -q Rules.zip -d Example
+          cd Example
+          gcc test.cpp -o test -L. -llibmathcat_c
+          ./test.exe
+          gcc test.c -o test -L. -llibmathcat_c
+          ./test.exe
+      - name: Test with Rules-minimized.zip
+        shell: bash
+        run: |
+          rm -rf Example/Rules
+          unzip -o -q Rules-minimized.zip -d Example
+          cd Example
+          gcc test.cpp -o test -L. -llibmathcat_c
+          ./test.exe
+          gcc test.c -o test -L. -llibmathcat_c
+          ./test.exe
+
+  rust-64-arm-win:
+    name: Build 64 bit arm windows dll (${{ matrix.name }})
     runs-on: windows-latest  # needs to run on windows because of bzip2
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: default
+            features: ""
+            zip: libmathcat_c.dll-64-arm.zip
+          - name: no-unsafe
+            features: --features no-unsafe
+            zip: libmathcat_c.dll-no-unsafe-64-arm.zip
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -223,72 +273,40 @@ jobs:
           rm -f Cargo.toml.bak
       - name: Add ARM Windows target
         run: rustup target add aarch64-pc-windows-msvc
-      - name: Build 64 bit arm version (default)
-        run: cargo build --target aarch64-pc-windows-msvc --release
-      # HOW DO I GET A ARM GCC TO RUN? 
-      - name: Setup Example dir for default
+      - name: Build 64 bit arm version
+        run: cargo build --target aarch64-pc-windows-msvc --release ${{ matrix.features }}
+      - name: Setup Example dir
         run: |
           cp target/aarch64-pc-windows-msvc/release/libmathcat_c.dll Example/
-          cd Example
-          # gcc test.cpp -o test -L. -llibmathcat_c
-          # ./test.exe
-          # gcc test.c -o test -L. -llibmathcat_c
-          # ./test.exe
-      - name: create zip file for default dll
+      - name: create zip file for dll
         uses: thedoctor0/zip-release@0.7.5
         with:
           type: 'zip'
-          filename: '../libmathcat_c.dll-64-arm.zip'
+          filename: '../${{ matrix.zip }}'
           directory: 'Example'
           path: 'libmathcat_c.dll'
-      - name: Build 64 bit arm version (no-unsafe)
-        run: cargo build --target aarch64-pc-windows-msvc --release --features no-unsafe
-      - name: Setup Example dir for no-unsafe
-        run: |
-          cp target/aarch64-pc-windows-msvc/release/libmathcat_c.dll Example/
-      - name: create zip file for no-unsafe dll
-        uses: thedoctor0/zip-release@0.7.5
-        with:
-          type: 'zip'
-          filename: '../libmathcat_c.dll-no-unsafe-64-arm.zip'
-          directory: 'Example'
-          path: 'libmathcat_c.dll'
-      - name: Upload 64 bit arm dll files 
+      - name: Upload 64 bit arm dll file
         uses: actions/upload-artifact@v5
         with:
-          name: libmathcat_c.dll-64-arm
-          path: |
-            libmathcat_c.dll-64-arm.zip
-            libmathcat_c.dll-no-unsafe-64-arm.zip
+          name: ${{ matrix.zip }}
+          path: ${{ matrix.zip }}
           compression-level: 0
           retention-days: 1
 
-  pre-release:  
+  pre-release:
     name: Pre Release
     continue-on-error: false
-    needs: [rules-headers-tests, rust-32-win, rust-64-win, rust-64-arm-win]
+    needs: [rules-headers-tests, rust-32-win, rust-64-win, rust-64-arm-win, rust-win-test]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v5
 
-    # download the previous build artifacts and put them in their proper places
-    - name: Download Rules.zip, 2 header files, and 2 test files
+    - name: Download all build artifacts
       uses: actions/download-artifact@v5
       with:
-        name: rules-headers-tests
-    - name: Download 32 bit builds
-      uses: actions/download-artifact@v5
-      with:
-        name: libmathcat_c.dll-32-win
-    - name: Download 64 bit builds
-      uses: actions/download-artifact@v5
-      with:
-        name: libmathcat_c.dll-64-win
-    - name: Download 64 bit arm builds
-      uses: actions/download-artifact@v5
-      with:
-        name: libmathcat_c.dll-64-arm
+        pattern: '*'
+        merge-multiple: true
     - name: Get MathCAT version for release title
       id: mathcat-version
       shell: bash
