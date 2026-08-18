@@ -188,10 +188,12 @@ jobs:
             zip: libmathcat_c.dll-64-arm.zip
             os: windows-11-arm
             bits: 64
+            cc: cl
           - name: ARM no-unsafe
             zip: libmathcat_c.dll-no-unsafe-64-arm.zip
             os: windows-11-arm
             bits: 64
+            cc: cl
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -219,26 +221,56 @@ jobs:
       - name: Unzip dll
         shell: bash
         run: unzip -o -q "${{ matrix.dll.zip }}" -d Example
-      - name: Test with Rules.zip
+      - name: Unpack Rules.zip
         shell: bash
         run: |
           rm -rf Example/Rules
           unzip -o -q Example/Rules.zip -d Example
-          cd Example
+      - name: Test with Rules.zip (gcc)
+        if: matrix.dll.cc != 'cl'
+        working-directory: Example
+        shell: bash
+        run: |
           gcc test.cpp -o test -L. -llibmathcat_c
           ./test.exe
           gcc test.c -o test -L. -llibmathcat_c
           ./test.exe
-      - name: Test with Rules-minimized.zip
+      - name: Test with Rules.zip (MSVC ARM64)
+        if: matrix.dll.cc == 'cl'
+        working-directory: Example
+        shell: cmd
+        run: |
+          for /f "usebackq delims=" %%i in (`vswhere -latest -property installationPath`) do set "VSPATH=%%i"
+          call "%VSPATH%\VC\Auxiliary\Build\vcvarsall.bat" arm64
+          cl /nologo /EHsc test.cpp /Fe:test.exe /link libmathcat_c.dll.lib
+          test.exe
+          cl /nologo /EHsc /TP test.c /Fe:test.exe /link libmathcat_c.dll.lib
+          test.exe
+      - name: Unpack Rules-minimized.zip
         shell: bash
         run: |
           rm -rf Example/Rules
           unzip -o -q Example/Rules-minimized.zip -d Example
-          cd Example
+      - name: Test with Rules-minimized.zip (gcc)
+        if: matrix.dll.cc != 'cl'
+        working-directory: Example
+        shell: bash
+        run: |
           gcc test.cpp -o test -L. -llibmathcat_c
           ./test.exe
           gcc test.c -o test -L. -llibmathcat_c
           ./test.exe
+      - name: Test with Rules-minimized.zip (MSVC ARM64)
+        if: matrix.dll.cc == 'cl'
+        working-directory: Example
+        shell: cmd
+        run: |
+          for /f "usebackq delims=" %%i in (`vswhere -latest -property installationPath`) do set "VSPATH=%%i"
+          call "%VSPATH%\VC\Auxiliary\Build\vcvarsall.bat" arm64
+          cl /nologo /EHsc test.cpp /Fe:test.exe /link libmathcat_c.dll.lib
+          test.exe
+          cl /nologo /EHsc /TP test.c /Fe:test.exe /link libmathcat_c.dll.lib
+          test.exe
 
   rust-64-arm-win:
     name: Build 64 bit arm windows dll (${{ matrix.name }})
@@ -279,13 +311,14 @@ jobs:
       - name: Setup Example dir
         run: |
           cp target/aarch64-pc-windows-msvc/release/libmathcat_c.dll Example/
+          cp target/aarch64-pc-windows-msvc/release/libmathcat_c.dll.lib Example/
       - name: create zip file for dll
         uses: thedoctor0/zip-release@0.7.5
         with:
           type: 'zip'
           filename: '../${{ matrix.zip }}'
           directory: 'Example'
-          path: 'libmathcat_c.dll'
+          path: 'libmathcat_c.dll*'
       - name: Upload 64 bit arm dll file
         uses: actions/upload-artifact@v7
         with:
