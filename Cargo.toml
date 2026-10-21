@@ -1,6 +1,6 @@
 [package]
 name = "mathcat_c"
-version = "0.7.6-rc.3"  # on gitbug, this will be replaced by the current MathCAT version
+version = "0.7.7"  # on gitbug, this will be replaced by the current MathCAT version
 authors = ["Neil Soiffer <soiffer@alum.mit.edu>"]
 edition = "2024"
 license = "MIT"
@@ -12,9 +12,9 @@ resolver = "2"    # allows different build dependency features
 "no-unsafe" = ["mathcat/no-unsafe"]      # build MathCAT without unsafe in XML/XPath deps
 
 [dependencies]
-# mathcat = {version = "0.7.6-rc.1"}
-mathcat = {path= "../MathCAT/"}  # local default; CI rewrites to the matching MathCAT branch
-# mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest" }
+# mathcat = {version = "0.7.7"}
+# mathcat = {path= "../MathCAT/"}  # local default; CI rewrites to the matching MathCAT branch
+mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest" }
 
 [lib]
 name = "libmathcat_c"
@@ -22,12 +22,12 @@ crate-type = ["cdylib"]      # Creates dynamic lib
 
 [build-dependencies]
 cfg-if = "1.0.1"
-zip = { version = "8.5", default-features = false, features = ["bzip2"] }
+zip = { version = "9.0", default-features = false, features = ["bzip2"] }
 cbindgen = "0.29"
 # for testing MathCAT without having to publish a new version (change two occurrences)
-# mathcat = {version = "=0.7.6-rc.1", features = ["include-zip"]}
-mathcat = {path = "../MathCAT/" , features = ["include-zip"]}  # local default; CI rewrites to the matching MathCAT branch
-# mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }
+# mathcat = {version = "=0.7.7", features = ["include-zip"]}
+# mathcat = {path = "../MathCAT/" , features = ["include-zip"]}  # local default; CI rewrites to the matching MathCAT branch
+mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
 embed-resource = "3.0"
