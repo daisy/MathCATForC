@@ -95,7 +95,7 @@ jobs:
         run: |
           cp target/i686-pc-windows-msvc/release/libmathcat_c.dll Example/
       - name: create zip file for dll
-        uses: thedoctor0/zip-release@0.7.5
+        uses: thedoctor0/zip-release@0.7.6
         with:
           type: 'zip'
           filename: '../${{ matrix.zip }}'
@@ -147,7 +147,7 @@ jobs:
         run: |
           cp target/x86_64-pc-windows-msvc/release/libmathcat_c.dll Example/
       - name: create zip file for dll
-        uses: thedoctor0/zip-release@0.7.5
+        uses: thedoctor0/zip-release@0.7.6
         with:
           type: 'zip'
           filename: '../${{ matrix.zip }}'
@@ -314,7 +314,7 @@ jobs:
           cp target/aarch64-pc-windows-msvc/release/libmathcat_c.dll Example/
           cp target/aarch64-pc-windows-msvc/release/libmathcat_c.dll.lib Example/
       - name: create zip file for dll
-        uses: thedoctor0/zip-release@0.7.5
+        uses: thedoctor0/zip-release@0.7.6
         with:
           type: 'zip'
           filename: '../${{ matrix.zip }}'
