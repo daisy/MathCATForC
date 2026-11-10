@@ -17,19 +17,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
       - name: Use matching MathCAT branch from GitHub
+        id: mathcat-branch
         shell: bash
         run: |
-          VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${GITHUB_REF_NAME}/Cargo.toml" \
+          MATHCAT_BRANCH="$GITHUB_REF_NAME"
+          if ! git ls-remote --exit-code --heads https://github.com/NSoiffer/MathCAT "refs/heads/$MATHCAT_BRANCH" >/dev/null 2>&1; then
+            echo "No matching MathCAT branch '$MATHCAT_BRANCH'; using default branch main"
+            MATHCAT_BRANCH=main
+          fi
+          echo "branch=$MATHCAT_BRANCH" >> "$GITHUB_OUTPUT"
+          VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${MATHCAT_BRANCH}/Cargo.toml" \
             | sed -n 's/^version = "\(.*\)"/\1/p' | head -n1)
           if [ -z "$VERSION" ]; then
-            echo "Failed to read MathCAT version from branch '${GITHUB_REF_NAME}'" >&2
+            echo "Failed to read MathCAT version from branch '${MATHCAT_BRANCH}'" >&2
             exit 1
           fi
-          echo "Using MathCAT branch ${GITHUB_REF_NAME} (version $VERSION)"
+          echo "Using MathCAT branch ${MATHCAT_BRANCH} (version $VERSION)"
           sed -i.bak \
             -e "s/^version = \".*\"/version = \"$VERSION\"/" \
-            -e "s|mathcat = {path= \"../MathCAT/\"}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\" }|" \
-            -e "s|mathcat = {path = \"../MathCAT/\" , features = \[\"include-zip\"\]}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\", features = [\"include-zip\"] }|" \
+            -e "s|mathcat = {path= \"../MathCAT/\"}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${MATHCAT_BRANCH}\" }|" \
+            -e "s|mathcat = {path = \"../MathCAT/\" , features = \[\"include-zip\"\]}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${MATHCAT_BRANCH}\", features = [\"include-zip\"] }|" \
             Cargo.toml
           rm -f Cargo.toml.bak
       - name: Build Rust Library
@@ -40,7 +47,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: NSoiffer/MathCAT
-          ref: ${{ github.ref_name }}
+          ref: ${{ steps.mathcat-branch.outputs.branch }}
           path: MathCAT
       - name: Create Rules.zip and Rules-minimized.zip
         run: |
@@ -76,17 +83,22 @@ jobs:
       - name: Use matching MathCAT branch from GitHub
         shell: bash
         run: |
-          VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${GITHUB_REF_NAME}/Cargo.toml" \
+          MATHCAT_BRANCH="$GITHUB_REF_NAME"
+          if ! git ls-remote --exit-code --heads https://github.com/NSoiffer/MathCAT "refs/heads/$MATHCAT_BRANCH" >/dev/null 2>&1; then
+            echo "No matching MathCAT branch '$MATHCAT_BRANCH'; using default branch main"
+            MATHCAT_BRANCH=main
+          fi
+          VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${MATHCAT_BRANCH}/Cargo.toml" \
             | sed -n 's/^version = "\(.*\)"/\1/p' | head -n1)
           if [ -z "$VERSION" ]; then
-            echo "Failed to read MathCAT version from branch '${GITHUB_REF_NAME}'" >&2
+            echo "Failed to read MathCAT version from branch '${MATHCAT_BRANCH}'" >&2
             exit 1
           fi
-          echo "Using MathCAT branch ${GITHUB_REF_NAME} (version $VERSION)"
+          echo "Using MathCAT branch ${MATHCAT_BRANCH} (version $VERSION)"
           sed -i.bak \
             -e "s/^version = \".*\"/version = \"$VERSION\"/" \
-            -e "s|mathcat = {path= \"../MathCAT/\"}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\" }|" \
-            -e "s|mathcat = {path = \"../MathCAT/\" , features = \[\"include-zip\"\]}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\", features = [\"include-zip\"] }|" \
+            -e "s|mathcat = {path= \"../MathCAT/\"}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${MATHCAT_BRANCH}\" }|" \
+            -e "s|mathcat = {path = \"../MathCAT/\" , features = \[\"include-zip\"\]}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${MATHCAT_BRANCH}\", features = [\"include-zip\"] }|" \
             Cargo.toml
           rm -f Cargo.toml.bak
       - name: Build 32 bit version
@@ -95,7 +107,7 @@ jobs:
         run: |
           cp target/i686-pc-windows-msvc/release/libmathcat_c.dll Example/
       - name: create zip file for dll
-        uses: thedoctor0/zip-release@0.7.5
+        uses: thedoctor0/zip-release@0.7.6
         with:
           type: 'zip'
           filename: '../${{ matrix.zip }}'
@@ -128,17 +140,22 @@ jobs:
       - name: Use matching MathCAT branch from GitHub
         shell: bash
         run: |
-          VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${GITHUB_REF_NAME}/Cargo.toml" \
+          MATHCAT_BRANCH="$GITHUB_REF_NAME"
+          if ! git ls-remote --exit-code --heads https://github.com/NSoiffer/MathCAT "refs/heads/$MATHCAT_BRANCH" >/dev/null 2>&1; then
+            echo "No matching MathCAT branch '$MATHCAT_BRANCH'; using default branch main"
+            MATHCAT_BRANCH=main
+          fi
+          VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${MATHCAT_BRANCH}/Cargo.toml" \
             | sed -n 's/^version = "\(.*\)"/\1/p' | head -n1)
           if [ -z "$VERSION" ]; then
-            echo "Failed to read MathCAT version from branch '${GITHUB_REF_NAME}'" >&2
+            echo "Failed to read MathCAT version from branch '${MATHCAT_BRANCH}'" >&2
             exit 1
           fi
-          echo "Using MathCAT branch ${GITHUB_REF_NAME} (version $VERSION)"
+          echo "Using MathCAT branch ${MATHCAT_BRANCH} (version $VERSION)"
           sed -i.bak \
             -e "s/^version = \".*\"/version = \"$VERSION\"/" \
-            -e "s|mathcat = {path= \"../MathCAT/\"}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\" }|" \
-            -e "s|mathcat = {path = \"../MathCAT/\" , features = \[\"include-zip\"\]}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\", features = [\"include-zip\"] }|" \
+            -e "s|mathcat = {path= \"../MathCAT/\"}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${MATHCAT_BRANCH}\" }|" \
+            -e "s|mathcat = {path = \"../MathCAT/\" , features = \[\"include-zip\"\]}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${MATHCAT_BRANCH}\", features = [\"include-zip\"] }|" \
             Cargo.toml
           rm -f Cargo.toml.bak
       - name: Build 64 bit version
@@ -147,7 +164,7 @@ jobs:
         run: |
           cp target/x86_64-pc-windows-msvc/release/libmathcat_c.dll Example/
       - name: create zip file for dll
-        uses: thedoctor0/zip-release@0.7.5
+        uses: thedoctor0/zip-release@0.7.6
         with:
           type: 'zip'
           filename: '../${{ matrix.zip }}'
@@ -292,17 +309,22 @@ jobs:
       - name: Use matching MathCAT branch from GitHub
         shell: bash
         run: |
-          VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${GITHUB_REF_NAME}/Cargo.toml" \
+          MATHCAT_BRANCH="$GITHUB_REF_NAME"
+          if ! git ls-remote --exit-code --heads https://github.com/NSoiffer/MathCAT "refs/heads/$MATHCAT_BRANCH" >/dev/null 2>&1; then
+            echo "No matching MathCAT branch '$MATHCAT_BRANCH'; using default branch main"
+            MATHCAT_BRANCH=main
+          fi
+          VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${MATHCAT_BRANCH}/Cargo.toml" \
             | sed -n 's/^version = "\(.*\)"/\1/p' | head -n1)
           if [ -z "$VERSION" ]; then
-            echo "Failed to read MathCAT version from branch '${GITHUB_REF_NAME}'" >&2
+            echo "Failed to read MathCAT version from branch '${MATHCAT_BRANCH}'" >&2
             exit 1
           fi
-          echo "Using MathCAT branch ${GITHUB_REF_NAME} (version $VERSION)"
+          echo "Using MathCAT branch ${MATHCAT_BRANCH} (version $VERSION)"
           sed -i.bak \
             -e "s/^version = \".*\"/version = \"$VERSION\"/" \
-            -e "s|mathcat = {path= \"../MathCAT/\"}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\" }|" \
-            -e "s|mathcat = {path = \"../MathCAT/\" , features = \[\"include-zip\"\]}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${GITHUB_REF_NAME}\", features = [\"include-zip\"] }|" \
+            -e "s|mathcat = {path= \"../MathCAT/\"}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${MATHCAT_BRANCH}\" }|" \
+            -e "s|mathcat = {path = \"../MathCAT/\" , features = \[\"include-zip\"\]}|mathcat = { git = \"https://github.com/NSoiffer/MathCAT\", branch = \"${MATHCAT_BRANCH}\", features = [\"include-zip\"] }|" \
             Cargo.toml
           rm -f Cargo.toml.bak
       - name: Add ARM Windows target
@@ -314,7 +336,7 @@ jobs:
           cp target/aarch64-pc-windows-msvc/release/libmathcat_c.dll Example/
           cp target/aarch64-pc-windows-msvc/release/libmathcat_c.dll.lib Example/
       - name: create zip file for dll
-        uses: thedoctor0/zip-release@0.7.5
+        uses: thedoctor0/zip-release@0.7.6
         with:
           type: 'zip'
           filename: '../${{ matrix.zip }}'
@@ -330,6 +352,7 @@ jobs:
 
   pre-release:
     name: Pre Release
+    if: ${{ !startsWith(github.ref_name, 'dependabot/') }}
     continue-on-error: false
     needs: [rules-headers-tests, rust-32-win, rust-64-win, rust-64-arm-win, rust-win-test]
     runs-on: ubuntu-latest
@@ -348,10 +371,15 @@ jobs:
       id: mathcat-version
       shell: bash
       run: |
-        VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${GITHUB_REF_NAME}/Cargo.toml" \
+        MATHCAT_BRANCH="$GITHUB_REF_NAME"
+        if ! git ls-remote --exit-code --heads https://github.com/NSoiffer/MathCAT "refs/heads/$MATHCAT_BRANCH" >/dev/null 2>&1; then
+          echo "No matching MathCAT branch '$MATHCAT_BRANCH'; using default branch main"
+          MATHCAT_BRANCH=main
+        fi
+        VERSION=$(curl -fsSL "https://raw.githubusercontent.com/NSoiffer/MathCAT/${MATHCAT_BRANCH}/Cargo.toml" \
           | sed -n 's/^version = "\(.*\)"/\1/p' | head -n1)
         if [ -z "$VERSION" ]; then
-          echo "Failed to read MathCAT version from branch '${GITHUB_REF_NAME}'" >&2
+          echo "Failed to read MathCAT version from branch '${MATHCAT_BRANCH}'" >&2
           exit 1
         fi
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
