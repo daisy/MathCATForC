@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
       - name: Use matching MathCAT branch from GitHub
         id: mathcat-branch
         shell: bash
@@ -44,7 +44,7 @@ jobs:
           # doesn't need a release build since all that we want is the Rules dir and the .h files
           cargo build --target x86_64-unknown-linux-gnu --features include-zip
       - name: Checkout matching MathCAT branch
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: NSoiffer/MathCAT
           ref: ${{ steps.mathcat-branch.outputs.branch }}
@@ -79,7 +79,7 @@ jobs:
             zip: libmathcat_c.dll-no-unsafe-32-win.zip
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
       - name: Use matching MathCAT branch from GitHub
         shell: bash
         run: |
@@ -136,7 +136,7 @@ jobs:
             zip: libmathcat_c.dll-no-unsafe-64-win.zip
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
       - name: Use matching MathCAT branch from GitHub
         shell: bash
         run: |
@@ -214,7 +214,7 @@ jobs:
             cc: cl
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
       - name: Download Rules zips, headers, and tests
         uses: actions/download-artifact@v8
         with:
@@ -305,7 +305,7 @@ jobs:
             zip: libmathcat_c.dll-no-unsafe-64-arm.zip
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
       - name: Use matching MathCAT branch from GitHub
         shell: bash
         run: |
@@ -360,7 +360,7 @@ jobs:
       contents: write
     steps:
     - name: Checkout code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
 
     - name: Download all build artifacts
       uses: actions/download-artifact@v8
