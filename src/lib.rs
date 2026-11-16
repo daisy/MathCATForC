@@ -8,6 +8,7 @@
 //! Navigation can be done via calls to either:
 //! * [`DoNavigateKeyPress`] (takes key events as input)
 //! * [`DoNavigateCommand`] (takes the commands the key events internally map to)
+//!
 //! Both return a string to speak.
 //! To highlight the node on is on, 'id's are used. If they weren't already present,
 //! [`SetMathML`] returns a string representing MathML that contains 'id's for any node that doesn't already
@@ -117,8 +118,12 @@ fn set_empty_error(result: Result<(), libmathcat::errors::Error>) -> *const c_ch
 #[unsafe(no_mangle)]
 /// IMPORTANT: For every MathCAT function that returns a string, it must be free'd with this call
 /// If this is not called, the memory will be leaked.
-pub extern "C" fn FreeMathCATString(str: *mut c_char) {
-    unsafe{
+///
+/// # Safety
+/// `str` must be either null or a pointer previously returned by a MathCAT function that allocates a string.
+/// It must not be freed more than once.
+pub unsafe extern "C" fn FreeMathCATString(str: *mut c_char) {
+    unsafe {
         if !str.is_null() {
             drop(CString::from_raw(str));
         };
