@@ -1,10 +1,10 @@
 [package]
 name = "mathcat_c"
-version = "0.7.8-alpha"  # on gitbug, this will be replaced by the current MathCAT version
+version = "0.7.8"  # on github, this will be replaced by the current MathCAT version
 authors = ["Neil Soiffer <soiffer@alum.mit.edu>"]
 edition = "2024"
 license = "MIT"
-description = "C/C++ interface for MathCAT (for MathCAT info, see crates.io or nsoiffer.github.io/MathCAT)"
+description = "C/C++ interface for MathCAT (for MathCAT info, see crates.io or daisy.github.io/MathCAT)"
 resolver = "2"    # allows different build dependency features
 
 [features]
@@ -14,7 +14,7 @@ resolver = "2"    # allows different build dependency features
 [dependencies]
 # mathcat = {version = "0.7.8-alpha"}
 mathcat = {path= "../MathCAT/"}  # local default; CI rewrites to the matching MathCAT branch
-# mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest" }
+# mathcat = { git = "https://github.com/daisy/MathCAT", tag = "latest" }
 
 [lib]
 name = "libmathcat_c"
@@ -27,7 +27,7 @@ cbindgen = "0.29"
 # for testing MathCAT without having to publish a new version (change two occurrences)
 # mathcat = {version = "=0.7.8-alpha", features = ["include-zip"]}
 mathcat = {path = "../MathCAT/" , features = ["include-zip"]}  # local default; CI rewrites to the matching MathCAT branch
-# mathcat = { git = "https://github.com/NSoiffer/MathCAT", tag = "latest", features = ["include-zip"] }
+# mathcat = { git = "https://github.com/daisy/MathCAT", tag = "latest", features = ["include-zip"] }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
 embed-resource = "3.0"
