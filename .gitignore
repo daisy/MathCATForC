@@ -1,6 +1,9 @@
 /target
 .vscode/
-Example/
+# Local/CI test dir: generated headers, Rules, and binaries (test sources are force-tracked)
+Example/**
+!Example/test.c
+!Example/test.cpp
 c-example/.vs/
 c-example/.vscode/
 c-example/CppProperties.json

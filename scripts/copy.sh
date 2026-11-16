@@ -1,14 +1,46 @@
 outputDir="../Builds"
 rulesDir="../Example/Rules"
-headerDir="../Example"
+headerDir="../include"
+exampleDir="../Example"
 
 if [ -n "$1" ]; then 
     outputDir="${outputDir}/$1"
 fi
 
 mkdir -p ${outputDir}
+mkdir -p "${exampleDir}"
 
 cp  -r "${rulesDir}" "${outputDir}/"
+
+# Host build → Example/ so local test.c / test.cpp can link and run with -L.
+# Prefer release over debug when both exist.
+host_lib=""
+for candidate in \
+    ../target/release/libmathcat_c.dll \
+    ../target/release/libmathcat_c.so \
+    ../target/release/libmathcat_c.dylib \
+    ../target/debug/libmathcat_c.dll \
+    ../target/debug/libmathcat_c.so \
+    ../target/debug/libmathcat_c.dylib
+do
+    if [ -f "$candidate" ]; then
+        host_lib="$candidate"
+        break
+    fi
+done
+if [ -n "$host_lib" ]; then
+    cp -f "$host_lib" "${exampleDir}/"
+    echo "Copied $host_lib → Example/"
+    # Import library / PDB next to the DLL when present (MSVC link from Example/).
+    host_dir=$(dirname "$host_lib")
+    for extra in libmathcat_c.dll.lib libmathcat_c.dll.exp libmathcat_c.pdb; do
+        if [ -f "${host_dir}/${extra}" ]; then
+            cp -f "${host_dir}/${extra}" "${exampleDir}/"
+        fi
+    done
+else
+    echo "No host libmathcat_c.{dll,so,dylib} found under target/{release,debug}"
+fi
 
 cd "../target"
 for dir in *; do

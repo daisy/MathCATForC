@@ -42,7 +42,11 @@ jobs:
       - name: Build Rust Library
         run: |
           # doesn't need a release build since all that we want is the Rules dir and the .h files
+          # build.rs writes headers to OUT_DIR, then mirrors them to include/ and Example/
           cargo build --target x86_64-unknown-linux-gnu --features include-zip
+          # Ensure Example has headers even if include/ was already committed
+          mkdir -p Example
+          cp -f include/mathcat.h include/mathcat-c.h Example/
       - name: Checkout matching MathCAT branch
         uses: actions/checkout@v5
         with:
@@ -55,7 +59,7 @@ jobs:
           cargo run --manifest-path MathCAT/Cargo.toml --release --bin package-rules -- MathCAT/Rules Example/Rules-minimized.zip --minimize
       - name: Remove Rules dir in prep for uploading test, .h files, and Rules zips
         run: |
-          rm -r Example/Rules
+          rm -rf Example/Rules
       - name: Upload Example Dir (.h files, test files, Rules zips)
         uses: actions/upload-artifact@v7
         with:
