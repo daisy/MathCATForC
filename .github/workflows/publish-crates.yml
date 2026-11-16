@@ -1,0 +1,103 @@
+# Publishes mathcat_c to crates.io when a (non-pre) GitHub release is published.
+# Uses crates.io Trusted Publishing (OIDC); see PUBLISHING.md for the one-time setup.
+name: Publish to crates.io
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-crates
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish mathcat_c
+    # The rolling "latest" development build is a prerelease and must never be published.
+    if: ${{ !github.event.release.prerelease && !github.event.release.draft && github.repository == 'daisy/MathCATForC' }}
+    runs-on: ubuntu-latest
+    environment: crates-io
+    permissions:
+      contents: read
+      id-token: write   # required for crates.io Trusted Publishing
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+
+      - name: Verify release tag matches crate version
+        id: version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          CRATE_VERSION=$(sed -n '/^\[package\]/,/^\[/ s/^version *= *"\([^"]*\)".*/\1/p' Cargo.toml | head -n1)
+          TAG_VERSION="${TAG#v}"
+          if [ -z "$CRATE_VERSION" ]; then
+            echo "::error::Could not read [package] version from Cargo.toml"
+            exit 1
+          fi
+          if [ "$TAG_VERSION" != "$CRATE_VERSION" ]; then
+            echo "::error::Release tag '$TAG' does not match Cargo.toml version '$CRATE_VERSION'"
+            exit 1
+          fi
+          echo "version=$CRATE_VERSION" >> "$GITHUB_OUTPUT"
+
+      # mathcat_c tracks the MathCAT version, so it depends on the same mathcat version.
+      - name: Verify mathcat ${{ steps.version.outputs.version }} is on crates.io
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          if ! INFO=$(curl -fsS -A "daisy/MathCATForC publish workflow" \
+               "https://crates.io/api/v1/crates/mathcat/${VERSION}"); then
+            echo "::error::mathcat ${VERSION} is not published on crates.io; publish MathCAT first"
+            exit 1
+          fi
+          if [ "$(jq -r '.version.yanked' <<< "$INFO")" != "false" ]; then
+            echo "::error::mathcat ${VERSION} is yanked on crates.io"
+            exit 1
+          fi
+
+      # crates.io rejects path dependencies, so replace the local ../MathCAT/ defaults.
+      - name: Use crates.io mathcat dependencies
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          sed -i \
+            -e "s|^mathcat = {path *= *\"[^\"]*\" *}.*$|mathcat = { version = \"=${VERSION}\" }|" \
+            -e "s|^mathcat = {path *= *\"[^\"]*\" *, *features = \[\"include-zip\"\]}.*$|mathcat = { version = \"=${VERSION}\", features = [\"include-zip\"] }|" \
+            Cargo.toml
+          if grep -nE '^mathcat *=.*(path|git) *=' Cargo.toml; then
+            echo "::error::Cargo.toml still has a non-crates.io mathcat dependency"
+            exit 1
+          fi
+          grep -nE '^mathcat *=' Cargo.toml
+
+      # build.rs writes headers into Example/, which cargo's packaged-source verification
+      # rejects. Build here to validate the crate, then package/publish with --no-verify.
+      - name: Build
+        run: cargo build --release --features include-zip
+
+      - name: Dry run
+        run: cargo publish --dry-run --allow-dirty --no-verify
+
+      - name: Authenticate with crates.io
+        id: auth
+        uses: rust-lang/crates-io-auth-action@v1
+
+      - name: Publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+        run: cargo publish --allow-dirty --no-verify
